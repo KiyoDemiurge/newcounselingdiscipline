@@ -1,0 +1,110 @@
+CREATE TABLE appointments (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    student_id INT(11) NOT NULL,
+    counselor_id INT(11) NOT NULL,
+    counselor_name VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    date DATE NOT NULL,
+    time TIME NOT NULL,
+    status ENUM('pending', 'approved', 'completed', 'cancelled') 
+        CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci 
+        DEFAULT 'pending',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY student_id (student_id),
+    KEY counselor_id (counselor_id)
+);
+CREATE TABLE counseling_records (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    student_id INT(11) NOT NULL,
+    counselor_id INT(11) NOT NULL,
+    session_date DATE NOT NULL,
+    notes TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+    follow_up_required TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY student_id (student_id),
+    KEY counselor_id (counselor_id)
+);
+CREATE TABLE discipline_records (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    student_id INT(11) NOT NULL,
+    counselor_id INT(11) NOT NULL,
+    incident_date DATE NOT NULL,
+    incident_type VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    description TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+    action_taken TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY student_id (student_id),
+    KEY counselor_id (counselor_id)
+);
+CREATE TABLE logs (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    name VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    email VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    password VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    role ENUM('admin', 'counselor', 'user') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY email (email)
+);
+CREATE TABLE settings (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    setting_name VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+    setting_value VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY setting_name (setting_name)
+);
+CREATE TABLE students (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    student_id VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    name VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    grade_level VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+    section VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY student_id (student_id)
+);
+ALTER TABLE counseling_records
+ADD COLUMN status ENUM('pending','finished') NOT NULL DEFAULT 'pending';
+
+ALTER TABLE discipline_records
+ADD COLUMN status ENUM('pending','finished') NOT NULL DEFAULT 'pending';
+
+ALTER TABLE students 
+ADD strengths TEXT NULL,
+ADD weaknesses TEXT NULL,
+ADD academic_notes TEXT NULL,
+ADD risk_score INT DEFAULT 0;
+
+ALTER TABLE students
+ADD COLUMN email VARCHAR(255) NOT NULL UNIQUE AFTER name;
+
+ALTER TABLE students
+ADD COLUMN password VARCHAR(255) NOT NULL AFTER email;
+
+ALTER TABLE counseling_records
+DROP FOREIGN KEY IF EXISTS counseling_records_ibfk_1;
+
+ALTER TABLE counseling_records
+ADD CONSTRAINT fk_counseling_student
+FOREIGN KEY (student_id) REFERENCES logs(id) ON DELETE CASCADE;
+
+ALTER TABLE counseling_records
+ADD CONSTRAINT fk_counseling_counselor
+FOREIGN KEY (counselor_id) REFERENCES logs(id) ON DELETE CASCADE;
+
+
+ALTER TABLE discipline_records
+DROP FOREIGN KEY discipline_records_ibfk_1;
+
+
+ALTER TABLE discipline_records
+ADD CONSTRAINT discipline_records_ibfk_1
+FOREIGN KEY (student_id)
+REFERENCES logs(id)
+ON DELETE CASCADE;
+
+ALTER TABLE discipline_records ADD COLUMN incident_location VARCHAR(255) AFTER incident_type;
